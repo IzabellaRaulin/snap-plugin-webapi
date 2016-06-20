@@ -54,7 +54,6 @@ func ListPlugins(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	if e != nil {
 		fmt.Fprintf(w, "File error: %v\n", e)
 	}
-
 	plugins := make([]Plugin, 0)
 	err := json.Unmarshal(file, &plugins)
 	if err != nil {
@@ -66,11 +65,53 @@ func ListPlugins(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				return strings.Contains(v.Type, plugin_type)
 			})
 		}
-
 		output, _ := json.MarshalIndent(plugins, "", "    ")
 		fmt.Fprint(w, string(output))
 	}
 }
+
+func ListOwner(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+
+    file, e := ioutil.ReadFile("./plugins.json")
+	if e != nil {
+		fmt.Fprintf(w, "File error: %v\n", e)
+	}
+	plugins := make([]Plugin, 0)
+	err := json.Unmarshal(file, &plugins)
+	if err != nil {
+		fmt.Fprint(w, err)
+	}
+    plugin_type := strings.ToLower(ps.ByName("name"))
+	plugins = Filter(plugins, func(v Plugin) bool {
+				return strings.Contains(v.Type, "")
+			})
+    for _, value := range(plugins) {
+		if(plugin_type == value.Owner){
+			fmt.Fprintln(w, value.Name)
+				}
+	   }	
+}
+
+func ListOwners(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+
+    file, e := ioutil.ReadFile("./plugins.json")
+	if e != nil {
+		fmt.Fprintf(w, "File error: %v\n", e)
+	}
+	plugins := make([]Plugin, 0)
+	err := json.Unmarshal(file, &plugins)
+	if err != nil {
+		fmt.Fprint(w, err)
+	} else {
+			plugins = Filter(plugins, func(v Plugin) bool {
+				return strings.Contains(v.Type, "")
+			})
+			for _, value := range(plugins) {
+				fmt.Fprintln(w, value.Owner, ",", value.Name) 
+	      }
+	}
+}
+
 
 func main() {
 	router := httprouter.New()
@@ -78,6 +119,9 @@ func main() {
 	router.GET("/plugins", ListPlugins)
 	router.GET("/plugins/:type", ListPlugins)
 	router.GET("/plugin/:name", ListPlugin)
+	router.GET("/authors", ListOwners) 
+	router.GET("/author/:name", ListOwner) 
+	
 
 	var port = os.Getenv("PORT")
 	if port == "" {
